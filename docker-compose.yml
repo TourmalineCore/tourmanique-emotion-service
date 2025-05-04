@@ -4,24 +4,52 @@ services:
   run-model-locally:
     container_name: model-local-starter
     restart: "no"
-    image: tianon/true
+    image: tianon/true:multiarch
     depends_on:
-      - emotion-model
+      - emotions-model
 
-  emotion-model:
-    container_name: emotion-model
+  emotions-model:
+    container_name: emotions-model
+    command: poetry run flask run
     build:
       context: .
-    command: poetry run python ./application.py
-    image: emotion-model:latest
+    image: emotions-model:latest
     restart: unless-stopped
     volumes:
       - .:/app-workspace
     env_file:
       - .env
     networks:
-      - tourmanique-api-private_tourmanique-net
+      - tourmanique-api_tourmanique-net
+      - internal
+    depends_on:
+      - emotions-model-postgres
+    ports:
+      - "7531:5000"
+
+  emotions-model-postgres:
+    container_name: emotions-model-postgres
+    image: postgres:13.3-alpine
+    restart: always
+    volumes:
+      - emotions-model-postgres-data:/var/lib/postgresql/data/
+    healthcheck:
+      test: "pg_isready -U $$POSTGRES_USER"
+      timeout: 10s
+      interval: 10s
+      retries: 3
+    networks:
+      - tourmanique-api_tourmanique-net
+      - internal
+    env_file:
+      - .env
+    ports:
+      - "7530:5432"
 
 networks:
-  tourmanique-api-private_tourmanique-net:
+  internal: {}
+  tourmanique-api_tourmanique-net:
     external: true
+
+volumes:
+  emotions-model-postgres-data:
