@@ -31,11 +31,11 @@ replicaCount: 1
 
 resources:
   limits:
-    cpu: 150m
-    memory: 300Mi
+    cpu: 2000m
+    memory: 5Gi
   requests:
-    cpu: 1m
-    memory: 25Mi
+    cpu: 1000m
+    memory: 2Gi
 
 service:
   type: ClusterIP
